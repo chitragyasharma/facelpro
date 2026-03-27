@@ -2680,10 +2680,13 @@
 
     let PRODUCTS = [];
 
+    // Change this to your actual Render backend URL when deployed
+    const API_BASE = window.location.hostname.includes('localhost') ? '' : 'https://facelpro.onrender.com';
+
     async function api(url, method = 'GET', body = null) {
       const headers = { 'Content-Type': 'application/json' };
       if (state.token) headers['Authorization'] = `Bearer ${state.token}`;
-      const res = await fetch(url, { method, headers, body: body ? JSON.stringify(body) : null });
+      const res = await fetch(API_BASE + url, { method, headers, body: body ? JSON.stringify(body) : null });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'API Error');
       return data;
