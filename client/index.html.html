@@ -675,7 +675,10 @@
       left: 0;
       width: 100%;
       height: 100%;
-      object-fit: cover !important;
+      object-fit: contain !important;
+      mix-blend-mode: multiply;
+      padding: 10px;
+      box-sizing: border-box;
     }
 
     .product-tag {
@@ -958,11 +961,14 @@
     #detail-emoji img {
       width: 100%;
       height: 100%;
-      object-fit: cover !important;
+      object-fit: contain !important;
       object-position: center;
       position: absolute;
       top: 0;
       left: 0;
+      mix-blend-mode: multiply;
+      padding: 24px;
+      box-sizing: border-box;
     }
 
     .detail-body {
@@ -1133,7 +1139,10 @@
       left: 0;
       width: 100%;
       height: 100%;
-      object-fit: cover !important;
+      object-fit: contain !important;
+      mix-blend-mode: multiply;
+      padding: 4px;
+      box-sizing: border-box;
     }
 
     .cart-item-info {
