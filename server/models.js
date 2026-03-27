@@ -17,6 +17,7 @@ const ProductSchema = new mongoose.Schema({
     reviews: Number,
     shade: String,
     emoji: String,
+    image: String,
     tag: String,
     desc: String
 });
