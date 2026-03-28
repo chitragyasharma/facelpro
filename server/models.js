@@ -18,6 +18,12 @@ const ProductSchema = new mongoose.Schema({
     shade: String,
     emoji: String,
     image: String,
+    images: [String],
+    palette: [{
+        name: String,
+        hex: String,
+        image: String
+    }],
     tag: String,
     desc: String
 });

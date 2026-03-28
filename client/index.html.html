@@ -974,6 +974,32 @@
       box-sizing: border-box;
     }
 
+    .thumbnail-gallery {
+      display: flex;
+      gap: 12px;
+      margin-top: 12px;
+      overflow-x: auto;
+      padding-bottom: 8px;
+      scrollbar-width: none;
+    }
+    .thumbnail-gallery::-webkit-scrollbar {
+      display: none;
+    }
+    .thumb-img {
+      width: 70px;
+      height: 70px;
+      border-radius: 12px;
+      background: var(--card);
+      border: 2px solid transparent;
+      cursor: pointer;
+      object-fit: contain;
+      flex-shrink: 0;
+      transition: border-color 0.2s;
+    }
+    .thumb-img.active {
+      border-color: var(--rose-d);
+    }
+
     .detail-body {
       padding: 20px 18px;
     }
@@ -1848,6 +1874,11 @@
       transform: scale(1.25);
     }
 
+    .shade-dot.active {
+      border-color: var(--rose-d);
+      transform: scale(1.25);
+    }
+
     /* --- RESPONSIVE & DESKTOP ORIENTED OVERRIDES --- */
     .desktop-nav-links,
     .desktop-nav-icons {
@@ -2425,17 +2456,26 @@
       <span id="detail-breadcrumb" style="color:var(--tl)"></span>
     </div>
     <div class="desktop-detail-wrapper">
-      <div class="detail-img">
-        <span id="detail-emoji" style="font-size:110px;"></span>
-        <span id="detail-tag-badge" style="position:absolute;top:14px;left:14px;"></span>
-        <button class="product-wish" id="detail-wish-btn" onclick="toggleDetailWish()"
-          style="position:absolute;top:14px;right:16px;font-size:26px;">♡</button>
-        <span id="detail-discount"
-          style="position:absolute;bottom:10px;right:14px;background:var(--rose-d);color:#fff;font-size:10px;font-weight:700;padding:3px 8px;border-radius:12px;"></span>
+      <div style="display:flex;flex-direction:column;">
+        <div class="detail-img">
+          <span id="detail-emoji" style="font-size:110px;"></span>
+          <span id="detail-tag-badge" style="position:absolute;top:14px;left:14px;"></span>
+          <button class="product-wish" id="detail-wish-btn" onclick="toggleDetailWish()"
+            style="position:absolute;top:14px;right:16px;font-size:26px;">♡</button>
+          <span id="detail-discount"
+            style="position:absolute;bottom:10px;right:14px;background:var(--rose-d);color:#fff;font-size:10px;font-weight:700;padding:3px 8px;border-radius:12px;"></span>
+        </div>
+        <div class="thumbnail-gallery" id="thumbnail-gallery" style="display:none;"></div>
       </div>
       <div class="detail-body">
         <div class="detail-title" id="detail-name"></div>
         <div class="detail-shade" id="detail-shade"></div>
+        
+        <div id="detail-palette-container" style="display:none; margin: 16px 0 24px;">
+          <div style="font-size:11px; font-weight:700; color:var(--tm); margin-bottom:10px; text-transform:uppercase; letter-spacing:1px;">Select Shade</div>
+          <div class="shade-dots" id="detail-palette-dots" style="justify-content:flex-start; flex-wrap:wrap;"></div>
+        </div>
+
         <div class="detail-price-row">
           <div>
             <span class="detail-price" id="detail-price"></span>
@@ -2854,6 +2894,35 @@
     }
 
     // ─── PRODUCT DETAIL ──────────────────────────
+    function selectPaletteShade(index, pid) {
+      const p = PRODUCTS.find(x => x.id === pid);
+      if (!p || !p.palette || !p.palette[index]) return;
+      const shadeData = p.palette[index];
+      
+      const mainImg = document.getElementById('main-detail-img');
+      if (mainImg) {
+        mainImg.src = shadeData.image;
+        mainImg.style.objectFit = pid === 1 ? 'cover' : 'contain';
+      } else {
+        document.getElementById('detail-emoji').innerHTML = `<img src="${shadeData.image}" id="main-detail-img" style="width:100%;height:100%;${pid === 1 ? 'object-fit:cover;' : 'object-fit:contain;'}">`;
+      }
+
+      document.getElementById('detail-shade').innerHTML = 'Shade: <span style="font-weight:600;color:var(--td);">' + shadeData.name + '</span>';
+      
+      document.querySelectorAll('#detail-palette-dots .shade-dot').forEach((el, i) => {
+        el.classList.toggle('active', i === index);
+      });
+    }
+    function swapDetailImage(src, el, pid) {
+      const mainImg = document.getElementById('main-detail-img');
+      if (mainImg) {
+        mainImg.src = src;
+        mainImg.style.objectFit = pid === 1 ? 'cover' : 'contain';
+      }
+      document.querySelectorAll('.thumb-img').forEach(t => t.classList.remove('active'));
+      if (el) el.classList.add('active');
+    }
+
     function openProduct(id) {
       const p = PRODUCTS.find(x => x.id === id);
       state.currentProduct = p;
@@ -2861,11 +2930,41 @@
       const disc = Math.round((1 - p.price / p.orig) * 100);
       const inW = state.wishlist.find(w => w.id === p.id);
 
-      document.getElementById('detail-emoji').innerHTML = p.image ? `<img src="${p.image}" style="width:100%;height:100%;${p.id === 1 ? 'object-fit:cover;' : 'object-fit:contain;'}">` : p.emoji;
+      let mainSrc = p.image;
+      if (p.images && p.images.length > 0) mainSrc = p.images[0];
+      
+      document.getElementById('detail-emoji').innerHTML = mainSrc ? `<img src="${mainSrc}" id="main-detail-img" style="width:100%;height:100%;${p.id === 1 ? 'object-fit:cover;' : 'object-fit:contain;'}">` : p.emoji;
+      
+      const thumbGallery = document.getElementById('thumbnail-gallery');
+      if (p.images && p.images.length > 1) {
+        thumbGallery.style.display = 'flex';
+        thumbGallery.innerHTML = p.images.map((src, idx) => 
+          `<img src="${src}" class="thumb-img ${idx === 0 ? 'active' : ''}" onclick="swapDetailImage('${src}', this, ${p.id})">`
+        ).join('');
+      } else {
+        thumbGallery.style.display = 'none';
+        thumbGallery.innerHTML = '';
+      }
+
       document.getElementById('detail-cat').textContent = p.cat;
       document.getElementById('detail-breadcrumb').textContent = p.name;
       document.getElementById('detail-name').textContent = p.name;
-      document.getElementById('detail-shade').textContent = 'Shade: ' + p.shade;
+      document.getElementById('detail-shade').innerHTML = 'Shade: <span style="font-weight:600;color:var(--td);">' + p.shade + '</span>';
+      
+      const palContainer = document.getElementById('detail-palette-container');
+      const palDots = document.getElementById('detail-palette-dots');
+      if (p.palette && p.palette.length > 0) {
+        palContainer.style.display = 'block';
+        palDots.innerHTML = p.palette.map((item, idx) => 
+          `<div class="shade-dot ${idx === 0 ? 'active' : ''}" style="background:${item.hex};" title="${item.name}" onclick="selectPaletteShade(${idx}, ${p.id})"></div>`
+        ).join('');
+        
+        selectPaletteShade(0, p.id);
+      } else {
+        palContainer.style.display = 'none';
+        palDots.innerHTML = '';
+      }
+
       document.getElementById('detail-price').textContent = '₹' + p.price;
       document.getElementById('detail-orig').textContent = '₹' + p.orig;
       document.getElementById('detail-discount').textContent = disc + '% OFF';
