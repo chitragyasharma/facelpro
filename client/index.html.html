@@ -675,7 +675,7 @@
       left: 0;
       width: 100%;
       height: 100%;
-      object-fit: contain !important;
+      object-fit: cover !important;
       padding: 0;
       box-sizing: border-box;
     }
@@ -2819,7 +2819,7 @@
       return `
     <div class="product-card" data-id="${p.id}" style="${extraStyle}" onclick="openProduct(${p.id})">
       <div class="product-img">
-        ${p.image ? `<img src="${p.image}" alt="${p.name}" style="width:100%;height:100%;object-fit:contain;">` : `<span style="font-size:50px;">${p.emoji}</span>`}
+        ${p.image ? `<img src="${p.image}" alt="${p.name}" style="width:100%;height:100%;object-fit:cover;">` : `<span style="font-size:50px;">${p.emoji}</span>`}
         ${p.tag ? `<span class="product-tag">${p.tag}</span>` : ''}
         <button class="product-wish ${inWish ? 'active' : ''}" onclick="event.stopPropagation();toggleWish(${p.id})">${inWish ? '♥' : '♡'}</button>
         <span class="product-discount">${disc}% OFF</span>
@@ -2899,9 +2899,9 @@
       const mainImg = document.getElementById('main-detail-img');
       if (mainImg) {
         mainImg.src = shadeData.image;
-        mainImg.style.objectFit = 'contain';
+        mainImg.style.objectFit = 'cover';
       } else {
-        document.getElementById('detail-emoji').innerHTML = `<img src="${shadeData.image}" id="main-detail-img" style="width:100%;height:100%;object-fit:contain;">`;
+        document.getElementById('detail-emoji').innerHTML = `<img src="${shadeData.image}" id="main-detail-img" style="width:100%;height:100%;object-fit:cover;">`;
       }
 
       document.getElementById('detail-shade').innerHTML = 'Shade: <span style="font-weight:600;color:var(--td);">' + shadeData.name + '</span>';
@@ -2914,7 +2914,7 @@
       const mainImg = document.getElementById('main-detail-img');
       if (mainImg) {
         mainImg.src = src;
-        mainImg.style.objectFit = 'contain';
+        mainImg.style.objectFit = 'cover';
       }
       document.querySelectorAll('.thumb-img').forEach(t => t.classList.remove('active'));
       if (el) el.classList.add('active');
@@ -2930,7 +2930,7 @@
       let mainSrc = p.image;
       if (p.images && p.images.length > 0) mainSrc = p.images[0];
       
-      document.getElementById('detail-emoji').innerHTML = mainSrc ? `<img src="${mainSrc}" id="main-detail-img" style="width:100%;height:100%;object-fit:contain;">` : p.emoji;
+      document.getElementById('detail-emoji').innerHTML = mainSrc ? `<img src="${mainSrc}" id="main-detail-img" style="width:100%;height:100%;object-fit:cover;">` : p.emoji;
       
       const thumbGallery = document.getElementById('thumbnail-gallery');
       if (p.images && p.images.length > 1) {
