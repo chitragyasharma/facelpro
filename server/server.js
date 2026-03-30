@@ -63,8 +63,8 @@ app.post('/api/auth/login', async (req, res) => {
         const { email, password } = req.body;
         const user = await User.findOne({ email });
         
-        if (!user || !bcrypt.compareSync(password, user.password)) {
-            return res.status(400).json({ error: "Invalid credentials" });
+        if (!user || !user.password || !bcrypt.compareSync(password, user.password)) {
+            return res.status(400).json({ error: "Invalid credentials (did you sign up with Google?)" });
         }
         
         const token = jwt.sign({ id: user.id, name: user.name, email: user.email }, SECRET_KEY);

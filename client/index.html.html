@@ -669,7 +669,8 @@
       position: relative;
       overflow: hidden;
     }
-    .product-img > img {
+
+    .product-img>img {
       position: absolute;
       top: 0;
       left: 0;
@@ -952,6 +953,7 @@
       overflow: hidden;
       border-radius: 16px;
     }
+
     #detail-emoji {
       width: 100%;
       height: auto;
@@ -959,6 +961,7 @@
       align-items: center;
       justify-content: center;
     }
+
     #detail-emoji img {
       width: 100%;
       height: auto;
@@ -976,9 +979,11 @@
       padding-bottom: 8px;
       scrollbar-width: none;
     }
+
     .thumbnail-gallery::-webkit-scrollbar {
       display: none;
     }
+
     .thumb-img {
       width: 70px;
       height: 70px;
@@ -990,6 +995,7 @@
       flex-shrink: 0;
       transition: border-color 0.2s;
     }
+
     .thumb-img.active {
       border-color: var(--rose-d);
     }
@@ -1156,7 +1162,8 @@
       position: relative;
       overflow: hidden;
     }
-    .cart-item-img > img {
+
+    .cart-item-img>img {
       position: absolute;
       top: 0;
       left: 0;
@@ -2251,7 +2258,8 @@
       </div>
       <span onclick="goTo('wishlist')" style="cursor:pointer;" title="Wishlist">♡</span>
       <span onclick="goTo('cart')" style="cursor:pointer;" title="Cart">🛒</span>
-      <span onclick="goTo(state.user?'home':'auth')" style="cursor:pointer;" title="Account">👤</span>
+      <span onclick="if(state.user){openSidebar();}else{goTo('auth');}" style="cursor:pointer;"
+        title="Account">👤</span>
     </div>
   </nav>
 
@@ -2466,9 +2474,11 @@
       <div class="detail-body">
         <div class="detail-title" id="detail-name"></div>
         <div class="detail-shade" id="detail-shade"></div>
-        
+
         <div id="detail-palette-container" style="display:none; margin: 16px 0 24px;">
-          <div style="font-size:11px; font-weight:700; color:var(--tm); margin-bottom:10px; text-transform:uppercase; letter-spacing:1px;">Select Shade</div>
+          <div
+            style="font-size:11px; font-weight:700; color:var(--tm); margin-bottom:10px; text-transform:uppercase; letter-spacing:1px;">
+            Select Shade</div>
           <div class="shade-dots" id="detail-palette-dots" style="justify-content:flex-start; flex-wrap:wrap;"></div>
         </div>
 
@@ -2686,23 +2696,16 @@
 
     <!-- HUB VIEW -->
     <div class="auth-card" id="auth-hub-view">
-      <div id="g_id_onload"
-         data-client_id="YOUR_GOOGLE_CLIENT_ID"
-         data-context="signin"
-         data-ux_mode="popup"
-         data-callback="handleGoogleResponse"
-         data-auto_prompt="false">
+      <div id="g_id_onload" data-client_id="291867843413-2d12fqfpbe1b0n8dh9bau3eu43c8h40j.apps.googleusercontent.com"
+        data-context="signin" data-ux_mode="popup" data-callback="handleGoogleResponse" data-auto_prompt="false">
       </div>
-      <div class="g_id_signin"
-         data-type="standard"
-         data-shape="rectangular"
-         data-theme="outline"
-         data-text="continue_with"
-         data-size="large"
-         data-logo_alignment="left"
-         style="margin-bottom: 12px; display: flex; justify-content: center;">
+      <div class="g_id_signin" data-type="standard" data-shape="rectangular" data-theme="outline"
+        data-text="continue_with" data-size="large" data-logo_alignment="left"
+        style="margin-bottom: 12px; display: flex; justify-content: center;">
       </div>
-      <button class="btn btn-ghost btn-full" style="margin-bottom: 12px; display: flex; align-items: center; justify-content: center; gap: 10px; font-family: 'Jost', sans-serif; font-weight: 500; letter-spacing: 0;" onclick="switchAuthView('phone_entry')">
+      <button class="btn btn-ghost btn-full"
+        style="margin-bottom: 12px; display: flex; align-items: center; justify-content: center; gap: 10px; font-family: 'Jost', sans-serif; font-weight: 500; letter-spacing: 0;"
+        onclick="switchAuthView('phone_entry')">
         <span style="font-size:18px;">📱</span> Continue with Phone
       </button>
       <div style="display:flex; align-items:center; margin: 16px 0; color:var(--tl); font-size:12px;">
@@ -2710,19 +2713,23 @@
         <div style="padding:0 10px;">or</div>
         <div style="flex:1; height:1px; background:var(--border);"></div>
       </div>
-      <button class="btn btn-secondary btn-full" style="font-family: 'Jost', sans-serif; font-weight: 500; letter-spacing: 0;" onclick="switchAuthView('email')">
+      <button class="btn btn-secondary btn-full"
+        style="font-family: 'Jost', sans-serif; font-weight: 500; letter-spacing: 0;" onclick="switchAuthView('email')">
         ✉️ Continue with Email
       </button>
     </div>
 
     <!-- PHONE ENTRY VIEW -->
     <div class="auth-card" id="auth-phone-entry-view" style="display: none;">
-      <button onclick="switchAuthView('hub')" style="background:none;border:none;color:var(--tl);margin-bottom:16px;cursor:pointer;font-size:13px;font-weight:600;">← Back</button>
+      <button onclick="switchAuthView('hub')"
+        style="background:none;border:none;color:var(--tl);margin-bottom:16px;cursor:pointer;font-size:13px;font-weight:600;">←
+        Back</button>
       <div class="form-title" style="margin-bottom: 8px;">Enter Your Mobile Number</div>
       <p style="font-size: 12px; color: var(--tm); margin-bottom: 20px;">We will send you a 4-digit OTP</p>
       <div class="form-group">
         <div style="display:flex; gap:10px;">
-          <input class="form-input" type="text" value="+91" disabled style="width:50px; text-align:center; padding: 11px 4px; background: var(--pale);">
+          <input class="form-input" type="text" value="+91" disabled
+            style="width:50px; text-align:center; padding: 11px 4px; background: var(--pale);">
           <input class="form-input" type="tel" id="auth-phone" placeholder="10-digit mobile number" style="flex:1;">
         </div>
       </div>
@@ -2731,20 +2738,30 @@
 
     <!-- PHONE OTP VIEW -->
     <div class="auth-card" id="auth-phone-otp-view" style="display: none;">
-      <button onclick="switchAuthView('phone_entry')" style="background:none;border:none;color:var(--tl);margin-bottom:16px;cursor:pointer;font-size:13px;font-weight:600;">← Back</button>
+      <button onclick="switchAuthView('phone_entry')"
+        style="background:none;border:none;color:var(--tl);margin-bottom:16px;cursor:pointer;font-size:13px;font-weight:600;">←
+        Back</button>
       <div class="form-title" style="margin-bottom: 8px;">Verify OTP</div>
-      <p style="font-size: 12px; color: var(--tm); margin-bottom: 20px;">Check your Terminal Console for the OPT sent to <br><span id="display-phone" style="font-weight:600;color:var(--td);"></span></p>
+      <p style="font-size: 12px; color: var(--tm); margin-bottom: 20px;">Check your Terminal Console for the OPT sent to
+        <br><span id="display-phone" style="font-weight:600;color:var(--td);"></span>
+      </p>
       <div class="form-group">
-        <input class="form-input" type="text" id="auth-otp" placeholder="Enter 4-digit OTP" style="text-align:center; letter-spacing:4px; font-weight:600; font-size:18px;">
-        <div style="text-align:center;margin-top:10px;"><span style="font-size:11px;color:var(--rose);cursor:pointer;font-weight:600;" onclick="submitPhoneEntry()">Resend OTP</span></div>
+        <input class="form-input" type="text" id="auth-otp" placeholder="Enter 4-digit OTP"
+          style="text-align:center; letter-spacing:4px; font-weight:600; font-size:18px;">
+        <div style="text-align:center;margin-top:10px;"><span
+            style="font-size:11px;color:var(--rose);cursor:pointer;font-weight:600;" onclick="submitPhoneEntry()">Resend
+            OTP</span></div>
       </div>
-      <button class="btn btn-primary btn-full" style="margin-top:8px;" onclick="submitPhoneOTP()">Verify & Login</button>
+      <button class="btn btn-primary btn-full" style="margin-top:8px;" onclick="submitPhoneOTP()">Verify &
+        Login</button>
     </div>
 
     <!-- EMAIL VIEW -->
     <div id="auth-email-view" style="display: none;">
       <div style="text-align:center; margin-bottom:16px;">
-        <button onclick="switchAuthView('hub')" style="background:none;border:none;color:var(--tl);cursor:pointer;font-size:13px;font-weight:600;text-decoration:underline;">← Back to all options</button>
+        <button onclick="switchAuthView('hub')"
+          style="background:none;border:none;color:var(--tl);cursor:pointer;font-size:13px;font-weight:600;text-decoration:underline;">←
+          Back to all options</button>
       </div>
       <div class="auth-toggle">
         <button class="auth-tab active" id="tab-login" onclick="switchAuthMode('login')">Sign In</button>
@@ -2767,7 +2784,8 @@
             <button class="pw-toggle" onclick="togglePw()">👁️</button>
           </div>
         </div>
-        <button class="btn btn-primary btn-full" style="margin-top:8px;" id="email-submit-btn" onclick="submitAuth()">Sign In</button>
+        <button class="btn btn-primary btn-full" style="margin-top:8px;" id="email-submit-btn"
+          onclick="submitAuth()">Sign In</button>
         <div id="forgot-link" style="text-align:center;margin-top:12px;"><span
             style="font-size:12px;color:var(--rose);cursor:pointer;font-weight:600;">Forgot password?</span></div>
       </div>
@@ -2794,7 +2812,7 @@
       <span class="bnav-icon">🛒</span><span class="bnav-label">Cart</span>
       <span class="bnav-badge" id="bn-cart-badge">0</span>
     </button>
-    <button class="bnav-btn" id="bn-auth" onclick="goTo(state.user?'home':'auth')">
+    <button class="bnav-btn" id="bn-auth" onclick="if(state.user){openSidebar();}else{goTo('auth');}">
       <span class="bnav-icon">👤</span><span class="bnav-label">Account</span>
     </button>
   </div>
@@ -2830,8 +2848,8 @@
 
     let PRODUCTS = [];
 
-    // Change this to your actual Render backend URL when deployed
-    const API_BASE = window.location.hostname.includes('localhost') ? '' : 'https://facelpro.onrender.com';
+    // Connect to localhost backend when developing locally
+    const API_BASE = window.location.hostname === 'facelpro.onrender.com' ? 'https://facelpro.onrender.com' : 'http://localhost:3000';
 
     async function api(url, method = 'GET', body = null) {
       const headers = { 'Content-Type': 'application/json' };
@@ -2958,7 +2976,7 @@
       const p = PRODUCTS.find(x => x.id === pid);
       if (!p || !p.palette || !p.palette[index]) return;
       const shadeData = p.palette[index];
-      
+
       const mainImg = document.getElementById('main-detail-img');
       if (mainImg) {
         mainImg.src = shadeData.image;
@@ -2968,7 +2986,7 @@
       }
 
       document.getElementById('detail-shade').innerHTML = 'Shade: <span style="font-weight:600;color:var(--td);">' + shadeData.name + '</span>';
-      
+
       document.querySelectorAll('#detail-palette-dots .shade-dot').forEach((el, i) => {
         el.classList.toggle('active', i === index);
       });
@@ -2992,13 +3010,13 @@
 
       let mainSrc = p.image;
       if (p.images && p.images.length > 0) mainSrc = p.images[0];
-      
+
       document.getElementById('detail-emoji').innerHTML = mainSrc ? `<img src="${mainSrc}" id="main-detail-img" style="width:100%;height:100%;object-fit:contain;">` : p.emoji;
-      
+
       const thumbGallery = document.getElementById('thumbnail-gallery');
       if (p.images && p.images.length > 1) {
         thumbGallery.style.display = 'flex';
-        thumbGallery.innerHTML = p.images.map((src, idx) => 
+        thumbGallery.innerHTML = p.images.map((src, idx) =>
           `<img src="${src}" class="thumb-img ${idx === 0 ? 'active' : ''}" onclick="swapDetailImage('${src}', this, ${p.id})">`
         ).join('');
       } else {
@@ -3010,15 +3028,15 @@
       document.getElementById('detail-breadcrumb').textContent = p.name;
       document.getElementById('detail-name').textContent = p.name;
       document.getElementById('detail-shade').innerHTML = 'Shade: <span style="font-weight:600;color:var(--td);">' + p.shade + '</span>';
-      
+
       const palContainer = document.getElementById('detail-palette-container');
       const palDots = document.getElementById('detail-palette-dots');
       if (p.palette && p.palette.length > 0) {
         palContainer.style.display = 'block';
-        palDots.innerHTML = p.palette.map((item, idx) => 
+        palDots.innerHTML = p.palette.map((item, idx) =>
           `<div class="shade-dot ${idx === 0 ? 'active' : ''}" style="background:${item.hex};" title="${item.name}" onclick="selectPaletteShade(${idx}, ${p.id})"></div>`
         ).join('');
-        
+
         selectPaletteShade(0, p.id);
       } else {
         palContainer.style.display = 'none';
@@ -3312,13 +3330,13 @@
 
     // ─── AUTH ────────────────────────────────────
     let currentAuthPhone = '';
-    
+
     function switchAuthView(view) {
       document.getElementById('auth-hub-view').style.display = view === 'hub' ? 'block' : 'none';
       document.getElementById('auth-phone-entry-view').style.display = view === 'phone_entry' ? 'block' : 'none';
       document.getElementById('auth-phone-otp-view').style.display = view === 'phone_otp' ? 'block' : 'none';
       document.getElementById('auth-email-view').style.display = view === 'email' ? 'block' : 'none';
-      
+
       const title = document.getElementById('auth-title');
       const sub = document.getElementById('auth-sub');
       if (view === 'hub') { title.textContent = 'Welcome 💄'; sub.textContent = 'Choose your login method to continue'; }
@@ -3327,7 +3345,8 @@
     }
 
     async function submitPhoneEntry() {
-      const p = document.getElementById('auth-phone').value;
+      const fieldVal = document.getElementById('auth-phone').value;
+      const p = fieldVal.trim().replace(/\s/g, '');
       if (!p || p.length < 10) return showToast('Enter valid 10-digit number');
       currentAuthPhone = p;
       try {
@@ -3338,7 +3357,8 @@
     }
 
     async function submitPhoneOTP() {
-      const otp = document.getElementById('auth-otp').value;
+      const fieldVal = document.getElementById('auth-otp').value;
+      const otp = fieldVal.trim().replace(/\s/g, '');
       if (!otp) return showToast('Enter OTP');
       try {
         const data = await api('/api/auth/verify-otp', 'POST', { phone: currentAuthPhone, otp });
@@ -3352,30 +3372,30 @@
         authSuccess(data);
       } catch (e) { showToast(e.message); }
     }
-    
+
     // Developer tool to simulate Google login if Google Client ID is missing/invalid
     window.addEventListener('load', () => {
-        const btnWrapper = document.querySelector('.g_id_signin');
-        if(btnWrapper) {
-            btnWrapper.addEventListener('contextmenu', (e) => {
-                e.preventDefault();
-                const mockJwtPayload = btoa(JSON.stringify({ email: 'test@gmail.com', name: 'Google Tester', sub: 'mock123' }));
-                handleGoogleResponse({ credential: 'mock.' + mockJwtPayload + '.mock' });
-            });
-        }
+      const btnWrapper = document.querySelector('.g_id_signin');
+      if (btnWrapper) {
+        btnWrapper.addEventListener('contextmenu', (e) => {
+          e.preventDefault();
+          const mockJwtPayload = btoa(JSON.stringify({ email: 'test@gmail.com', name: 'Google Tester', sub: 'mock123' }));
+          handleGoogleResponse({ credential: 'mock.' + mockJwtPayload + '.mock' });
+        });
+      }
     });
 
     async function authSuccess(data) {
       state.token = data.token;
       state.user = data.user;
       localStorage.setItem('facelook_token', data.token);
-      state.cart = await api('/api/cart');
-      state.wishlist = await api('/api/wishlist');
-      updateAuthUI();
-      updateBadges();
+      
       showToast('Welcome, ' + state.user.name + '! 💄');
-      switchAuthView('hub');
-      goTo('home');
+      
+      // Delay slightly so they can see the toast before the screen refreshes seamlessly to Home
+      setTimeout(() => {
+        window.location.reload();
+      }, 700);
     }
 
     function switchAuthMode(mode) {
@@ -3416,17 +3436,17 @@
 
     function handleAuthNav() {
       if (state.user) {
-        if (confirm('Sign out of your account?')) {
-          state.user = null;
-          state.token = null;
-          localStorage.removeItem('facelook_token');
-          state.cart = [];
-          state.wishlist = [];
-          updateAuthUI();
-          updateBadges();
-          showToast('Signed out successfully');
-        }
-      } else goTo('auth');
+        state.user = null;
+        state.token = null;
+        localStorage.removeItem('facelook_token');
+        state.cart = [];
+        state.wishlist = [];
+        updateAuthUI();
+        updateBadges();
+        showToast('Signed out successfully');
+      } else {
+        goTo('auth');
+      }
     }
 
     function updateAuthUI() {
