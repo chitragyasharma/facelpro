@@ -941,8 +941,8 @@
     }
 
     .detail-img {
-      height: 260px;
       width: 100%;
+      height: auto;
       background: var(--card);
       display: flex;
       align-items: center;
@@ -954,21 +954,18 @@
     }
     #detail-emoji {
       width: 100%;
-      height: 100%;
+      height: auto;
       display: flex;
       align-items: center;
       justify-content: center;
     }
     #detail-emoji img {
       width: 100%;
-      height: 100%;
+      height: auto;
       object-fit: contain !important;
       object-position: center;
-      position: absolute;
-      top: 0;
-      left: 0;
-      padding: 0;
-      box-sizing: border-box;
+      display: block;
+      border-radius: 16px;
     }
 
     .thumbnail-gallery {
@@ -2028,9 +2025,10 @@
       }
 
       .detail-img {
-        height: 450px;
+        height: auto;
         border-radius: 20px;
         font-size: 200px !important;
+        align-items: flex-start;
       }
 
       .detail-body {
