@@ -3486,10 +3486,10 @@
       const wb = document.getElementById('wish-badge');
       const bnc = document.getElementById('bn-cart-badge');
       const bnw = document.getElementById('bn-wish-badge');
-      cb.textContent = cartN; cb.classList.toggle('show', cartN > 0);
-      wb.textContent = wishN; wb.classList.toggle('show', wishN > 0);
-      bnc.textContent = cartN; bnc.classList.toggle('show', cartN > 0);
-      bnw.textContent = wishN; bnw.classList.toggle('show', wishN > 0);
+      if (cb) { cb.textContent = cartN; cb.classList.toggle('show', cartN > 0); }
+      if (wb) { wb.textContent = wishN; wb.classList.toggle('show', wishN > 0); }
+      if (bnc) { bnc.textContent = cartN; bnc.classList.toggle('show', cartN > 0); }
+      if (bnw) { bnw.textContent = wishN; bnw.classList.toggle('show', wishN > 0); }
     }
 
     // ─── CONTACT ─────────────────────────────────
