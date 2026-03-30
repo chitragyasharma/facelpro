@@ -2049,6 +2049,23 @@
         display: none !important;
       }
 
+      #checkout-footer {
+        display: block !important;
+        position: static;
+        background: transparent;
+        border: none;
+        padding: 24px 0;
+        transform: none;
+        text-align: center;
+        width: 100%;
+      }
+      
+      #checkout-footer .btn {
+        max-width: 340px;
+        margin: 0 auto;
+        display: inline-block;
+      }
+
       /* Limit sizes for cleaner desktop view */
       #page-cart,
       #page-checkout,
@@ -2220,11 +2237,81 @@
         padding: 0;
       }
     }
+
+    /* Simulated Payment Overlay */
+    #sim-payment-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(255, 255, 255, 0.96);
+      backdrop-filter: blur(5px);
+      z-index: 10000;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .sim-spinner {
+      width: 50px;
+      height: 50px;
+      border: 4px solid var(--border);
+      border-top-color: var(--nude-dark);
+      border-radius: 50%;
+      animation: sim-spin 1s linear infinite;
+      margin-bottom: 24px;
+    }
+
+    .sim-spinner.success {
+      border-color: #28a745;
+      animation: none;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: #28a745;
+      color: white;
+      border: none;
+      font-size: 24px;
+      pointer-events: none;
+    }
+
+    @keyframes sim-spin {
+      100% {
+        transform: rotate(360deg);
+      }
+    }
+
+    .sim-title {
+      font-family: 'Bebas Neue', cursive;
+      font-size: 32px;
+      color: var(--td);
+      letter-spacing: 1px;
+    }
+
+    .sim-sub {
+      font-size: 14px;
+      color: var(--tm);
+      margin-top: 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
   </style>
   <script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
 
 <body>
+
+  <!-- PAYMENT SIMULATION OVERLAY -->
+  <div id="sim-payment-overlay">
+    <div class="sim-spinner" id="sim-spinner-icon"></div>
+    <div class="sim-title" id="sim-title-text">Processing Payment</div>
+    <div class="sim-sub" id="sim-sub-text">
+      <span style="font-size:16px;">🔒</span> Establishing secure connection...
+    </div>
+  </div>
 
   <!-- ANNOUNCEMENT BAR -->
   <div class="announcement"><span>✦ FACÉLOOK March Offers — Free Shipping on ₹599+ ✦</span></div>
@@ -2256,11 +2343,13 @@
         <input type="text" placeholder="Search..." readonly
           style="border:none; outline:none; font-family:'Jost',sans-serif; cursor:pointer; pointer-events:none; background:transparent; width:100px;">
       </div>
-      <div style="position:relative; display:flex; align-items:center; cursor:pointer;" onclick="goTo('wishlist')" title="Wishlist">
+      <div style="position:relative; display:flex; align-items:center; cursor:pointer;" onclick="goTo('wishlist')"
+        title="Wishlist">
         <span>♡</span>
         <span class="badge" id="wish-badge" style="top:-6px; right:-12px;">0</span>
       </div>
-      <div style="position:relative; display:flex; align-items:center; cursor:pointer;" onclick="goTo('cart')" title="Cart">
+      <div style="position:relative; display:flex; align-items:center; cursor:pointer;" onclick="goTo('cart')"
+        title="Cart">
         <span>🛒</span>
         <span class="badge" id="cart-badge" style="top:-6px; right:-12px;">0</span>
       </div>
@@ -2329,7 +2418,7 @@
       <div class="hero-blob blob1"></div>
       <div class="hero-blob blob2"></div>
       <div class="hero-blob blob3"></div>
-      <div class="hero-tag">✦ New Collection 2026</div>
+      <div class="hero-tag">✦ New Collection 2026 ✦</div>
       <div class="hero-eyebrow">Queen Of</div>
       <div class="hero-title">MATTES</div>
       <p class="hero-sub">Lips that Rule Hearts</p>
@@ -2855,8 +2944,8 @@
     let PRODUCTS = [];
 
     // Connect to localhost backend when developing locally, otherwise use Render production URL
-    const API_BASE = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') 
-      ? 'http://localhost:3000' 
+    const API_BASE = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+      ? 'http://localhost:3000'
       : 'https://facelpro.onrender.com';
 
     async function api(url, method = 'GET', body = null) {
@@ -3306,14 +3395,49 @@
       const sub = state.cart.reduce((a, i) => a + i.price * i.qty, 0);
       const ship = sub >= 599 ? 0 : 49;
       const total = sub + ship;
+
+      // START SIMULATED GATEWAY OVERLAY
+      const simOverlay = document.getElementById('sim-payment-overlay');
+      const simSpinner = document.getElementById('sim-spinner-icon');
+      const simTitle = document.getElementById('sim-title-text');
+      const simSub = document.getElementById('sim-sub-text');
+
+      simOverlay.style.display = 'flex';
+      simSpinner.className = 'sim-spinner';
+      simSpinner.innerHTML = '';
+      simTitle.textContent = 'Processing Payment';
+      simSub.innerHTML = '<span style="font-size:16px;">🔒</span> Contacting ' + state.checkoutData.pay.toUpperCase() + ' gateway...';
+
       try {
+        // Wait 1.5s to simulate communication delay
+        await new Promise(r => setTimeout(r, 1500));
+        simSub.innerHTML = '<span style="font-size:16px;">💳</span> Verifying details...';
+        await new Promise(r => setTimeout(r, 1000));
+
+        // Attempt actual Backend Order Creation
         await api('/api/checkout', 'POST', { total, details: state.checkoutData });
+
+        // Success animation
+        simSpinner.className = 'sim-spinner success';
+        simSpinner.innerHTML = '✓';
+        simTitle.textContent = 'Payment Successful';
+        simTitle.style.color = '#28a745';
+        simSub.innerHTML = 'Redirecting to confirmation...';
+
+        await new Promise(r => setTimeout(r, 1000));
+
+        simOverlay.style.display = 'none';
+        simTitle.style.color = 'var(--td)'; // reset
+
         state.cart = [];
         updateBadges();
         state.checkoutStep = 3;
         renderCheckout();
         window.scrollTo(0, 0);
-      } catch (err) { showToast(err.message); }
+      } catch (err) {
+        simOverlay.style.display = 'none';
+        showToast(err.message);
+      }
     }
 
     function nextCheckout(step) {
@@ -3397,9 +3521,9 @@
       state.token = data.token;
       state.user = data.user;
       localStorage.setItem('facelook_token', data.token);
-      
+
       showToast('Welcome, ' + state.user.name + '! 💄');
-      
+
       // Delay slightly so they can see the toast before the screen refreshes seamlessly to Home
       setTimeout(() => {
         window.location.reload();
