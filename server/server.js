@@ -74,6 +74,84 @@ app.post('/api/auth/login', async (req, res) => {
     }
 });
 
+// --- OTP Store (In-Memory for demonstration) ---
+const OTP_STORE = {};
+
+app.post('/api/auth/send-otp', async (req, res) => {
+    try {
+        const { phone } = req.body;
+        if (!phone) return res.status(400).json({ error: 'Phone number required' });
+        
+        const otp = Math.floor(1000 + Math.random() * 9000).toString();
+        OTP_STORE[phone] = { otp, expiresAt: Date.now() + 5 * 60 * 1000 };
+        
+        console.log(`\n========================================`);
+        console.log(`📱 MOCK SMS TO ${phone}`);
+        console.log(`Your FACÉLOOK OTP is: ${otp}`);
+        console.log(`========================================\n`);
+        
+        res.json({ success: true, message: 'OTP sent successfully' });
+    } catch (error) {
+        res.status(500).json({ error: 'Server error sending OTP' });
+    }
+});
+
+app.post('/api/auth/verify-otp', async (req, res) => {
+    try {
+        const { phone, otp } = req.body;
+        if (!phone || !otp) return res.status(400).json({ error: 'Phone and OTP required' });
+        
+        const record = OTP_STORE[phone];
+        if (!record || record.otp !== otp || record.expiresAt < Date.now()) {
+            return res.status(400).json({ error: 'Invalid or expired OTP' });
+        }
+        
+        delete OTP_STORE[phone];
+        
+        let user = await User.findOne({ phone });
+        if (!user) {
+            const lastUser = await User.findOne().sort({ id: -1 });
+            const id = lastUser ? lastUser.id + 1 : 1;
+            user = new User({ id, name: phone, phone });
+            await user.save();
+        }
+        
+        const token = jwt.sign({ id: user.id, name: user.name, phone: user.phone }, SECRET_KEY);
+        res.json({ token, user: { name: user.name, phone: user.phone } });
+    } catch (error) {
+        res.status(500).json({ error: 'Server error verifying OTP' });
+    }
+});
+
+app.post('/api/auth/google', async (req, res) => {
+    try {
+        const { credential } = req.body;
+        if (!credential) return res.status(400).json({ error: 'Google credential missing' });
+        
+        const payloadBase64 = credential.split('.')[1];
+        const payload = JSON.parse(Buffer.from(payloadBase64, 'base64').toString('ascii'));
+        const { email, name, sub: googleId } = payload;
+        
+        let user = await User.findOne({ email });
+        if (!user) user = await User.findOne({ googleId });
+        
+        if (!user) {
+            const lastUser = await User.findOne().sort({ id: -1 });
+            const id = lastUser ? lastUser.id + 1 : 1;
+            user = new User({ id, name, email, googleId });
+            await user.save();
+        } else if (!user.googleId) {
+            user.googleId = googleId;
+            await user.save();
+        }
+        
+        const token = jwt.sign({ id: user.id, name: user.name, email: user.email }, SECRET_KEY);
+        res.json({ token, user: { name: user.name, email: user.email } });
+    } catch (error) {
+        res.status(500).json({ error: 'Server error decoding Google credential' });
+    }
+});
+
 // --- PRODUCTS ---
 app.get('/api/products', async (req, res) => {
     try {
