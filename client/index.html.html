@@ -2256,8 +2256,14 @@
         <input type="text" placeholder="Search..." readonly
           style="border:none; outline:none; font-family:'Jost',sans-serif; cursor:pointer; pointer-events:none; background:transparent; width:100px;">
       </div>
-      <span onclick="goTo('wishlist')" style="cursor:pointer;" title="Wishlist">♡</span>
-      <span onclick="goTo('cart')" style="cursor:pointer;" title="Cart">🛒</span>
+      <div style="position:relative; display:flex; align-items:center; cursor:pointer;" onclick="goTo('wishlist')" title="Wishlist">
+        <span>♡</span>
+        <span class="badge" id="wish-badge" style="top:-6px; right:-12px;">0</span>
+      </div>
+      <div style="position:relative; display:flex; align-items:center; cursor:pointer;" onclick="goTo('cart')" title="Cart">
+        <span>🛒</span>
+        <span class="badge" id="cart-badge" style="top:-6px; right:-12px;">0</span>
+      </div>
       <span onclick="if(state.user){openSidebar();}else{goTo('auth');}" style="cursor:pointer;"
         title="Account">👤</span>
     </div>
