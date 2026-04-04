@@ -290,7 +290,30 @@ app.post('/api/checkout', authenticateToken, async (req, res) => {
     }
 });
 
+app.post('/api/checkout/upi', authenticateToken, async (req, res) => {
+    try {
+        const { order_id, utr } = req.body;
+        
+        const order = await Order.findOne({ id: order_id });
+        if (order) {
+            order.status = 'Pending Verification';
+            order.details.utr_number = utr;
+            order.markModified('details');
+            await order.save();
+            res.json({ success: true, message: "UPI Payment pending verification" });
+        } else {
+            res.status(400).json({ error: 'Order not found' });
+        }
+    } catch (error) {
+        res.status(500).json({ error: 'Error processing UPI details' });
+    }
+});
+
 app.post('/api/payment/create-order', authenticateToken, async (req, res) => {
+    if (!process.env.RAZORPAY_KEY_ID || !process.env.RAZORPAY_KEY_SECRET) {
+        console.error("Razorpay Keys are missing in .env");
+        return res.status(400).json({ error: "Razorpay credentials not configured in backend .env" });
+    }
     const { amount } = req.body;
     try {
         const options = {
@@ -301,7 +324,8 @@ app.post('/api/payment/create-order', authenticateToken, async (req, res) => {
         const order = await razorpay.orders.create(options);
         res.json(order);
     } catch (error) {
-        res.status(500).json({ error: "Could not create Razorpay order" });
+        console.error("Razorpay Order Error:", error);
+        res.status(500).json({ error: "Could not create Razorpay order: " + (error.description || error.message || "Unknown error") });
     }
 });
 

@@ -2252,6 +2252,28 @@
   <!-- TOAST -->
   <div class="toast" id="toast"></div>
 
+  <!-- UPI QR MODAL -->
+  <div class="overlay" id="upi-qr-overlay" style="display:none;z-index:9000;">
+    <div class="qr-modal" style="background:var(--card);border:1px solid var(--rose-m);border-radius:24px;padding:30px;max-width:90%;width:380px;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;box-shadow:var(--shadow-h);">
+      <div style="font-family:'Bebas Neue',cursive;font-size:32px;color:var(--rose-d);letter-spacing:1px;margin-bottom:8px;">Scan to Pay</div>
+      <p style="color:var(--td);margin-bottom:20px;font-size:15px;">Amount to pay: <strong style="color:var(--rose);font-size:18px;">₹<span id="qr-amount"></span></strong></p>
+      
+      <div style="background:var(--pale);border-radius:16px;padding:16px;display:inline-block;margin-bottom:20px;">
+        <img src="" id="upi-dynamic-qr" style="width:200px;height:200px;border-radius:8px;" alt="Business QR Code">
+      </div>
+      
+      <p style="font-size:13px;color:var(--tm);margin-bottom:24px;">Or use UPI ID: <strong style="color:var(--td);">7683060619@superyes</strong></p>
+      
+      <div style="text-align:left;margin-bottom:24px;">
+        <label style="font-size:12px;color:var(--tm);font-weight:600;text-transform:uppercase;letter-spacing:1px;">Enter UTR / Transaction ID (12 digits)</label>
+        <input type="text" id="upi-utr-input" placeholder="e.g. 312345678901" style="width:100%;padding:14px;margin-top:8px;border:1px solid var(--border);border-radius:12px;outline:none;font-family:'Jost',sans-serif;font-size:15px;text-align:center;letter-spacing:2px;font-weight:600;color:var(--td);background:var(--bg);" />
+      </div>
+      
+      <button class="btn btn-primary btn-full" style="margin-bottom:12px;" onclick="submitUpiQrPayment()">Confirm Payment</button>
+      <button class="btn btn-ghost btn-full" onclick="document.getElementById('upi-qr-overlay').style.display='none'">Cancel</button>
+    </div>
+  </div>
+
   <!-- ═══════════════════════════════════
      PAGE: HOME
 ════════════════════════════════════ -->
@@ -3201,6 +3223,8 @@
           state.checkoutStep = 3;
           renderCheckout();
           window.scrollTo(0, 0);
+        } else if (state.checkoutData.pay === 'upi') {
+          showUpiQrModal(total, order_id);
         } else {
           processRazorpayPayment(total, order_id);
         }
@@ -3216,7 +3240,7 @@
           key: key,
           amount: rzpOrder.amount,
           currency: rzpOrder.currency,
-          name: "FACÉLOOK",
+          name: "FACELOOK",
           description: "Queen of Mattes Collection",
           order_id: rzpOrder.id,
           handler: async function (response) {
@@ -3240,10 +3264,26 @@
           prefill: {
             name: state.checkoutData.name,
             email: state.checkoutData.email,
-            contact: state.checkoutData.phone
+            contact: state.checkoutData.phone,
+            method: state.checkoutData.pay
           },
           theme: { color: "#B76E79" }
         };
+
+        if (state.checkoutData.pay === 'upi') {
+          options.config = {
+            display: {
+              blocks: {
+                qr: {
+                  name: "Pay using QR",
+                  instruments: [{ method: "upi", flows: ["qr"] }]
+                }
+              },
+              sequence: ["block.qr"],
+              preferences: { show_default_blocks: false }
+            }
+          };
+        }
 
         // Note: In real production, we would fetch the Razorpay Key ID from the backend
         // For now, if the user has RAZORPAY_KEY_ID in .env, they should manually update this or we can add an endpoint to get it.
@@ -3402,7 +3442,39 @@
 
     // ─── NEWSLETTER ──────────────────────────────
     function subscribeNL() {
-      showToast('Subscribed! Welcome to FACÉLOOK 💌');
+      showToast('Subscribed! Welcome to FACELOOK 💌');
+    }
+
+    let currentUpiOrderId = null;
+    function showUpiQrModal(amount, orderId) {
+      currentUpiOrderId = orderId;
+      document.getElementById('qr-amount').innerText = amount;
+      document.getElementById('upi-dynamic-qr').src = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&color=3A2020&data=upi://pay?pa=7683060619@superyes%26pn=FACELOOK%26am=${amount}`;
+      document.getElementById('upi-qr-overlay').style.display = 'block';
+      const input = document.getElementById('upi-utr-input');
+      if (input) input.value = '';
+    }
+
+    async function submitUpiQrPayment() {
+      const utr = document.getElementById('upi-utr-input').value;
+      if (!utr || utr.length < 5) {
+        showToast("Please enter a valid UTR or Transaction ID");
+        return;
+      }
+      
+      try {
+        await api('/api/checkout/upi', 'POST', { order_id: currentUpiOrderId, utr: utr });
+        
+        document.getElementById('upi-qr-overlay').style.display = 'none';
+        state.cart = [];
+        updateBadges();
+        state.checkoutStep = 3;
+        renderCheckout();
+        window.scrollTo(0, 0);
+        showToast("Payment submitted for verification!");
+      } catch (err) {
+        showToast("Error: " + err.message);
+      }
     }
 
     // ─── INIT ────────────────────────────────────
