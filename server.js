@@ -4,11 +4,18 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const fs = require('fs');
 const path = require('path');
+const Razorpay = require('razorpay');
+require('dotenv').config();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const SECRET_KEY = "facelook_super_secret_key";
+const SECRET_KEY = process.env.SECRET_KEY || "facelook_super_secret_key";
 let DB_FILE = path.resolve(__dirname, 'db.json');
+
+const razorpay = new Razorpay({
+    key_id: process.env.RAZORPAY_KEY_ID || 'rzp_test_placeholder',
+    key_secret: process.env.RAZORPAY_KEY_SECRET || 'secret_placeholder'
+});
 
 if (process.env.VERCEL) {
     DB_FILE = '/tmp/db.json';
@@ -165,15 +172,73 @@ app.post('/api/wishlist/toggle', authenticateToken, (req, res) => {
     }
 });
 
-// --- CHECKOUT ---
+// --- CHECKOUT & PAYMENTS ---
 app.post('/api/checkout', authenticateToken, (req, res) => {
     const { total, details } = req.body;
     const db = readDB();
     const order_id = db.orders.length ? db.orders[db.orders.length - 1].id + 1 : 1;
-    db.orders.push({ id: order_id, user_id: req.user.id, total, details, created_at: new Date().toISOString() });
-    db.cart = db.cart.filter(c => c.user_id !== req.user.id); // clear cart
+    db.orders.push({ 
+        id: order_id, 
+        user_id: req.user.id, 
+        total, 
+        details, 
+        status: details.pay === 'cod' ? 'Pending' : 'Awaiting Payment',
+        created_at: new Date().toISOString() 
+    });
+    if (details.pay === 'cod') {
+        db.cart = db.cart.filter(c => c.user_id !== req.user.id);
+    }
     writeDB(db);
-    res.json({ success: true, message: "Order placed successfully" });
+    res.json({ success: true, order_id, message: "Order initiated" });
+});
+
+app.post('/api/payment/create-order', authenticateToken, async (req, res) => {
+    const { amount } = req.body; // amount in INR
+    try {
+        const options = {
+            amount: amount * 100, // razorpay works in paise
+            currency: "INR",
+            receipt: `receipt_${Date.now()}`
+        };
+        const order = await razorpay.orders.create(options);
+        res.json(order);
+    } catch (error) {
+        console.error("Razorpay Order Error:", error);
+        res.status(500).json({ error: "Could not create Razorpay order" });
+    }
+});
+
+app.post('/api/payment/verify', authenticateToken, async (req, res) => {
+    const { razorpay_order_id, razorpay_payment_id, razorpay_signature, order_id } = req.body;
+    const crypto = require('crypto');
+    const hmac = crypto.createHmac('sha256', process.env.RAZORPAY_KEY_SECRET || 'secret_placeholder');
+    hmac.update(razorpay_order_id + "|" + razorpay_payment_id);
+    const generated_signature = hmac.digest('hex');
+
+    if (generated_signature === razorpay_signature) {
+        const db = readDB();
+        const order = db.orders.find(o => o.id === order_id);
+        if (order) {
+            order.status = 'Paid';
+            order.razorpay_payment_id = razorpay_payment_id;
+            order.razorpay_order_id = razorpay_order_id;
+        }
+        db.cart = db.cart.filter(c => c.user_id !== req.user.id); // clear cart on success
+        writeDB(db);
+        res.json({ success: true, message: "Payment verified successfully" });
+    } else {
+        res.status(400).json({ success: false, error: "Invalid signature" });
+    }
+});
+
+app.get('/api/orders', authenticateToken, (req, res) => {
+    const db = readDB();
+    const userOrders = db.orders.filter(o => o.user_id === req.user.id);
+    res.json(userOrders.reverse()); // latest first
+});
+
+app.get('/api/payment/key', (req, res) => {
+    res.json({ key: process.env.RAZORPAY_KEY_ID || 'rzp_test_placeholder' });
 });
 
 app.get('/', (req, res) => {

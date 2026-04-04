@@ -1932,6 +1932,20 @@
 
       .dropdown {
         cursor: pointer;
+        position: relative;
+        align-self: stretch;
+        display: flex;
+        align-items: center;
+      }
+
+      .dropdown::after {
+        content: "";
+        position: absolute;
+        top: 100%;
+        left: 0;
+        width: 100%;
+        height: 20px;
+        display: block;
       }
 
       .dropdown-content {
@@ -2298,6 +2312,120 @@
       align-items: center;
       gap: 8px;
     }
+    /* ══════════════════════════════════════
+   ACCOUNT PAGE
+══════════════════════════════════════ */
+    .acc-header {
+      padding: 24px 20px 16px;
+      font-family: 'Playfair Display', serif;
+      font-size: 24px;
+      color: var(--td);
+      background: var(--nude-mid);
+    }
+    
+    .acc-wrapper {
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .acc-tabs {
+      background: #fff;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .acc-tab-btn {
+      padding: 16px 20px;
+      border-bottom: 1px solid #f0f0f0;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      cursor: pointer;
+      transition: background .2s;
+      color: var(--td);
+      font-size: 15px;
+      font-weight: 500;
+    }
+    
+    .acc-tab-btn:hover {
+      background: var(--pale);
+    }
+    
+    .acc-tab-btn.active {
+      background: #eef5fc; /* light blue */
+      color: #333;
+      font-weight: 600;
+    }
+    
+    .acc-tab-icon {
+      font-size: 20px;
+      width: 24px;
+      text-align: center;
+      color: #666;
+    }
+    
+    .acc-tab-btn.active .acc-tab-icon {
+      color: #000;
+    }
+    
+    .acc-content-area {
+      padding: 24px 20px;
+      background: var(--bg);
+      min-height: 50vh;
+    }
+    
+    .acc-section {
+      display: none;
+    }
+    .acc-section.active {
+      display: block;
+      animation: fadeIn .3s ease;
+    }
+    
+    .order-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 16px;
+      box-shadow: var(--shadow);
+    }
+    
+    .order-head {
+      display: flex;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 12px;
+      margin-bottom: 12px;
+    }
+    
+    .order-id { font-weight: 700; color: var(--td); font-size: 14px; }
+    .order-date { font-size: 12px; color: var(--tl); }
+    .order-total { font-weight: 800; color: var(--rose-d); }
+    
+    @media (min-width: 768px) {
+      .acc-wrapper {
+         flex-direction: row;
+         max-width: 1000px;
+         margin: 40px auto;
+         background: transparent;
+         border-radius: 20px;
+         box-shadow: var(--shadow);
+         overflow: hidden;
+      }
+      .acc-tabs {
+         width: 300px;
+         border-right: 1px solid var(--border);
+         flex-shrink: 0;
+         background: #fff;
+      }
+      .acc-content-area {
+         flex: 1;
+         padding: 40px;
+         background: #fff;
+         min-height: 600px;
+      }
+    }
   </style>
   <script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
@@ -2337,11 +2465,11 @@
       </div>
     </div>
     <div class="desktop-nav-icons">
-      <div class="search-box desktop-search" onclick="goTo('shop')"
+      <div class="search-box desktop-search"
         style="width:240px; margin-right:10px; padding:10px 16px; border-radius:20px; border:1px solid var(--border); display:flex; align-items:center; gap:8px;">
         <span style="font-size: 14px;">🔍</span>
-        <input type="text" placeholder="Search..." readonly
-          style="border:none; outline:none; font-family:'Jost',sans-serif; cursor:pointer; pointer-events:none; background:transparent; width:100px;">
+        <input type="text" id="nav-search" placeholder="Search..." oninput="handleGlobalSearch(this)"
+          style="border:none; outline:none; font-family:'Jost',sans-serif; background:transparent; width:100%;">
       </div>
       <div style="position:relative; display:flex; align-items:center; cursor:pointer;" onclick="goTo('wishlist')"
         title="Wishlist">
@@ -2353,7 +2481,7 @@
         <span>🛒</span>
         <span class="badge" id="cart-badge" style="top:-6px; right:-12px;">0</span>
       </div>
-      <span onclick="if(state.user){openSidebar();}else{goTo('auth');}" style="cursor:pointer;"
+      <span onclick="if(state.user){goTo('account');}else{goTo('auth');}" style="cursor:pointer;"
         title="Account">👤</span>
     </div>
   </nav>
@@ -2372,7 +2500,9 @@
     <div class="sidebar-link" onclick="goTo('cart');closeSidebar()">🛒 Cart</div>
     <div class="sidebar-link" onclick="goTo('about');closeSidebar()">📖 About Us</div>
     <div class="sidebar-link" onclick="goTo('contact');closeSidebar()">📬 Contact</div>
-    <div style="margin-top:22px;" id="sidebar-auth-btn"></div>
+    <div style="margin-top:22px; display:none;" id="sidebar-auth-btn">
+      <button class="btn btn-ghost btn-full" onclick="logout()" style="border-radius:12px;">SIGN OUT</button>
+    </div>
   </div>
 
   <!-- TOAST -->
@@ -2384,10 +2514,9 @@
   <div class="page active" id="page-home">
     <!-- Search -->
     <div class="search-wrap">
-      <div class="search-box" onclick="goTo('shop')" style="cursor:pointer;">
+      <div class="search-box">
         <span>🔍</span>
-        <input type="text" placeholder="Search lipsticks, foundations…" readonly
-          style="cursor:pointer;pointer-events:none;">
+        <input type="text" id="home-search" placeholder="Search lipsticks, foundations…" oninput="handleGlobalSearch(this)">
       </div>
     </div>
 
@@ -2780,6 +2909,116 @@
   </div>
 
   <!-- ═══════════════════════════════════
+     PAGE: ACCOUNT
+════════════════════════════════════ -->
+  <div class="page" id="page-account">
+    <div class="acc-header">Your Account</div>
+    <div class="acc-wrapper">
+      <div class="acc-tabs">
+        <div class="acc-tab-btn active" data-tab="profile" onclick="switchAccTab('profile')">
+          <span class="acc-tab-icon">👤</span> My Profile
+        </div>
+        <div class="acc-tab-btn" data-tab="orders" onclick="switchAccTab('orders')">
+          <span class="acc-tab-icon">📦</span> Orders
+        </div>
+        <div class="acc-tab-btn" data-tab="coupons" onclick="switchAccTab('coupons')">
+          <span class="acc-tab-icon">🎟️</span> Coupons
+        </div>
+        <div class="acc-tab-btn" data-tab="cards" onclick="switchAccTab('cards')">
+          <span class="acc-tab-icon">💳</span> Saved Cards & Wallet
+        </div>
+        <div class="acc-tab-btn" data-tab="addresses" onclick="switchAccTab('addresses')">
+          <span class="acc-tab-icon">📍</span> Saved Addresses
+        </div>
+        <div class="acc-tab-btn" data-tab="gift" onclick="switchAccTab('gift')">
+          <span class="acc-tab-icon">🎁</span> Gift Cards
+        </div>
+        <div class="acc-tab-btn" data-tab="notifications" onclick="switchAccTab('notifications')">
+          <span class="acc-tab-icon">🔔</span> Notifications
+        </div>
+        <div class="acc-tab-btn" data-tab="logout" onclick="logout()">
+          <span class="acc-tab-icon">🚪</span> Logout
+        </div>
+      </div>
+      
+      <div class="acc-content-area">
+        <!-- Profile Section -->
+        <div class="acc-section active" id="acc-profile">
+          <div class="form-title">My Profile</div>
+          <p class="empty-sub">View and update your profile details.</p>
+          <div class="form-group" style="max-width: 400px; margin-top:20px;">
+              <label class="form-label">Name</label>
+              <input class="form-input" type="text" id="prof-name" disabled>
+          </div>
+          <div class="form-group" style="max-width: 400px;">
+              <label class="form-label">Email or Phone</label>
+              <input class="form-input" type="text" id="prof-email" disabled>
+          </div>
+        </div>
+
+        <!-- Orders Section -->
+        <div class="acc-section" id="acc-orders">
+          <div class="form-title">Your Orders</div>
+          <div id="acc-orders-content">
+             <div class="sim-spinner" style="margin:40px auto;border-color:var(--border);border-top-color:var(--rose);"></div>
+          </div>
+        </div>
+        
+        <!-- Coupons Section -->
+        <div class="acc-section" id="acc-coupons">
+          <div class="form-title">Coupons</div>
+          <div class="empty-state" style="padding:40px 20px;">
+            <div class="empty-icon">🎟️</div>
+            <div class="empty-title">No Active Coupons</div>
+            <p class="empty-sub">Earn coupons through our rewards program or special events.</p>
+          </div>
+        </div>
+
+        <!-- Cards Section -->
+        <div class="acc-section" id="acc-cards">
+          <div class="form-title">Saved Cards & Wallet</div>
+          <div class="empty-state" style="padding:40px 20px;">
+            <div class="empty-icon">💳</div>
+            <div class="empty-title">No Saved Cards</div>
+            <p class="empty-sub">Save a card during checkout for faster payments.</p>
+          </div>
+        </div>
+        
+        <!-- Addresses Section -->
+        <div class="acc-section" id="acc-addresses">
+          <div class="form-title">Saved Addresses</div>
+          <div class="empty-state" style="padding:40px 20px;">
+            <div class="empty-icon">📍</div>
+            <div class="empty-title">No Saved Addresses</div>
+            <p class="empty-sub">Add addresses to ease your checkout process.</p>
+            <button class="btn btn-secondary">Add New Address</button>
+          </div>
+        </div>
+
+        <!-- Gift Cards Section -->
+        <div class="acc-section" id="acc-gift">
+          <div class="form-title">Gift Cards</div>
+          <div class="empty-state" style="padding:40px 20px;">
+            <div class="empty-icon">🎁</div>
+            <div class="empty-title">No Gift Cards</div>
+            <p class="empty-sub">You don't have any active gift cards.</p>
+          </div>
+        </div>
+
+        <!-- Notifications Section -->
+        <div class="acc-section" id="acc-notifications">
+          <div class="form-title">Notifications</div>
+          <div class="empty-state" style="padding:40px 20px;">
+            <div class="empty-icon">🔔</div>
+            <div class="empty-title">All Caught Up!</div>
+            <p class="empty-sub">You have no new notifications.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════
      PAGE: AUTH
 ════════════════════════════════════ -->
   <div class="page" id="page-auth">
@@ -2907,7 +3146,7 @@
       <span class="bnav-icon">🛒</span><span class="bnav-label">Cart</span>
       <span class="bnav-badge" id="bn-cart-badge">0</span>
     </button>
-    <button class="bnav-btn" id="bn-auth" onclick="if(state.user){openSidebar();}else{goTo('auth');}">
+    <button class="bnav-btn" id="bn-auth" onclick="if(state.user){goTo('account');}else{goTo('auth');}">
       <span class="bnav-icon">👤</span><span class="bnav-label">Account</span>
     </button>
   </div>
@@ -2928,6 +3167,7 @@
       checkoutStep: 1,
       authMode: 'login',
       checkoutData: {},
+      accTab: 'orders',
       token: localStorage.getItem('facelook_token') || null
     };
 
@@ -2970,6 +3210,33 @@
       if (page === 'cart') renderCart();
       if (page === 'wishlist') renderWishlist();
       if (page === 'checkout') { state.checkoutStep = 1; renderCheckout(); }
+      if (page === 'account') {
+         if(!state.token) return goTo('auth');
+         renderAccount();
+      }
+    }
+
+    function handleGlobalSearch(el) {
+      const q = el.value;
+      if (state.page !== 'shop') {
+        state.shopFilter = 'All';
+        goTo('shop');
+      }
+      const shopInput = document.getElementById('shop-search');
+      if (shopInput) {
+        shopInput.value = q;
+        renderShop();
+        // Keep focus on the shop input if we just navigated
+        if (el.id !== 'nav-search') {
+          shopInput.focus();
+        }
+      }
+      
+      // Sync other search boxes
+      const navSearch = document.getElementById('nav-search');
+      const homeSearch = document.getElementById('home-search');
+      if (navSearch && navSearch !== el) navSearch.value = q;
+      if (homeSearch && homeSearch !== el) homeSearch.value = q;
     }
 
     function shopByFilter(filter) {
@@ -3037,6 +3304,10 @@
 
     function clearSearch() {
       document.getElementById('shop-search').value = '';
+      const navSearch = document.getElementById('nav-search');
+      const homeSearch = document.getElementById('home-search');
+      if (navSearch) navSearch.value = '';
+      if (homeSearch) homeSearch.value = '';
       document.getElementById('clear-search').style.display = 'none';
       renderShop();
     }
@@ -3566,19 +3837,16 @@
       }
     }
 
-    function handleAuthNav() {
-      if (state.user) {
-        state.user = null;
-        state.token = null;
-        localStorage.removeItem('facelook_token');
-        state.cart = [];
-        state.wishlist = [];
-        updateAuthUI();
-        updateBadges();
-        showToast('Signed out successfully');
-      } else {
-        goTo('auth');
-      }
+    function logout() {
+      state.user = null;
+      state.token = null;
+      localStorage.removeItem('facelook_token');
+      state.cart = [];
+      state.wishlist = [];
+      updateAuthUI();
+      updateBadges();
+      showToast('Signed out successfully');
+      goTo('home');
     }
 
     function updateAuthUI() {
@@ -3589,15 +3857,73 @@
       }
       const g = document.getElementById('sidebar-greeting');
       if (g) {
-        if (state.user) { g.style.display = 'block'; g.innerHTML = `👋 Hi, <strong style="color:var(--rose-d)">${state.user.name}</strong>!`; }
-        else g.style.display = 'none';
+        if (state.user) {
+          g.style.background = 'var(--pale)';
+          g.style.borderRadius = '12px';
+          g.style.padding = '12px 14px';
+          g.style.fontSize = '13px';
+          g.style.color = 'var(--tm)';
+          g.style.display = 'block'; 
+          g.innerHTML = `👋 Hi, <strong style="color:var(--rose-d)">${state.user.name}</strong>!`; 
+        } else {
+          g.style.display = 'none';
+        }
       }
       const sab = document.getElementById('sidebar-auth-btn');
       if (sab) {
-        sab.innerHTML = state.user
-          ? `<button class="btn btn-ghost btn-full" onclick="handleAuthNav();closeSidebar();">Sign Out</button>`
-          : `<button class="btn btn-primary btn-full" onclick="goTo('auth');closeSidebar();">Sign In / Sign Up</button>`;
+        sab.style.display = 'block';
+        if(state.user) {
+           sab.innerHTML = `<button class="btn btn-ghost btn-full" onclick="logout();closeSidebar();" style="border-radius:30px; border:1px solid var(--nude-dark); color:var(--td); font-family:'Bebas Neue',cursive; font-size:18px;">SIGN OUT</button>`;
+        } else {
+           sab.innerHTML = `<button class="btn btn-primary btn-full" onclick="goTo('auth');closeSidebar();" style="border-radius:30px; font-family:'Bebas Neue',cursive; font-size:18px;">SIGN IN / SIGN UP</button>`;
+        }
       }
+    }
+
+    // ─── ACCOUNT ─────────────────────────────────
+    function renderAccount() {
+       document.getElementById('prof-name').value = state.user?.name || '';
+       document.getElementById('prof-email').value = state.user?.email || state.user?.phone || '';
+       switchAccTab(state.accTab);
+    }
+    
+    function switchAccTab(tab) {
+       state.accTab = tab;
+       document.querySelectorAll('.acc-tab-btn').forEach(btn => {
+           if(btn.dataset.tab === tab) btn.classList.add('active');
+           else btn.classList.remove('active');
+       });
+       document.querySelectorAll('.acc-section').forEach(sec => {
+           if(sec.id === 'acc-' + tab) sec.classList.add('active');
+           else sec.classList.remove('active');
+       });
+       if(tab === 'orders') fetchOrders();
+    }
+    
+    async function fetchOrders() {
+       if (!state.token) return;
+       try {
+           const orders = await api('/api/orders');
+           let html = '';
+           if(orders.length === 0) {
+               html = `<div class="empty-state" style="padding:40px 20px;"><div class="empty-icon">📦</div><div class="empty-title">No orders yet</div><p class="empty-sub">When you place orders, they will appear here.</p><button class="btn btn-primary" onclick="goTo('shop')">Start Shopping</button></div>`;
+           } else {
+               orders.forEach(o => {
+                   html += `<div class="order-card">
+                       <div class="order-head">
+                           <div><div class="order-id">Order #${o.id}</div><div class="order-date">Recent Purchase</div></div>
+                           <div class="order-total">₹${o.total}</div>
+                       </div>
+                       <div style="font-size:13px;color:var(--tm);line-height:1.6;">
+                           ${o.details && o.details.pay ? 'Payment Method: ' + o.details.pay.toUpperCase() : 'Delivered to your address'}
+                       </div>
+                   </div>`;
+               });
+           }
+           document.getElementById('acc-orders-content').innerHTML = html;
+       } catch(e) {
+           document.getElementById('acc-orders-content').innerHTML = `<div class="empty-state"><p style="color:var(--tl)">${e.message}</p></div>`;
+       }
     }
 
     // ─── SIDEBAR ─────────────────────────────────

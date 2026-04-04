@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
-const { Product } = require('./models');
+const bcrypt = require('bcryptjs');
+const { Product, AdminUser, Coupon, Influencer, Return, Setting } = require('./models');
 
 const connectDB = async () => {
     try {
@@ -7,9 +8,64 @@ const connectDB = async () => {
         await mongoose.connect(uri);
         console.log('MongoDB Connected...');
         await seedProducts();
+        await seedAdmin();
     } catch (err) {
         console.error('MongoDB connection error:', err.message);
         process.exit(1);
+    }
+};
+
+const seedAdmin = async () => {
+    try {
+        const count = await AdminUser.countDocuments();
+        if (count === 0) {
+            await AdminUser.create({
+                id: 1,
+                name: 'Super Admin',
+                email: 'admin@facelook.com',
+                password: bcrypt.hashSync('Admin@123', 10),
+                role: 'super_admin',
+                twoFactorEnabled: true
+            });
+            console.log('Admin seeded: admin@facelook.com / Admin@123');
+        }
+
+        // Seed demo coupons
+        const couponCount = await Coupon.countDocuments();
+        if (couponCount === 0) {
+            await Coupon.insertMany([
+                { id: 1, code: 'BEAUTY20', type: 'percentage', value: 20, minOrder: 499, maxDiscount: 200, usageLimit: 100, usedCount: 34, validFrom: new Date(), validTo: new Date(Date.now() + 30*24*60*60*1000), isActive: true, campaignName: 'Summer Sale' },
+                { id: 2, code: 'FLAT100', type: 'flat', value: 100, minOrder: 599, usageLimit: 50, usedCount: 12, validFrom: new Date(), validTo: new Date(Date.now() + 15*24*60*60*1000), isActive: true, campaignName: 'New User' },
+                { id: 3, code: 'GLOW30', type: 'percentage', value: 30, minOrder: 799, maxDiscount: 300, usageLimit: 200, usedCount: 89, validFrom: new Date(Date.now() - 60*24*60*60*1000), validTo: new Date(Date.now() - 5*24*60*60*1000), isActive: false, campaignName: 'Glow Up Campaign' }
+            ]);
+            console.log('Demo coupons seeded.');
+        }
+
+        // Seed demo influencers
+        const infCount = await Influencer.countDocuments();
+        if (infCount === 0) {
+            await Influencer.insertMany([
+                { id: 1, name: 'Priya Sharma', platform: 'Instagram', handle: '@priyabeauty', referralCode: 'FL-PRIYA-1', totalSales: 47, totalRevenue: 23500, commission: 12, commissionPaid: 1800, isActive: true, campaigns: [{ name: 'Summer Glow', startDate: new Date(), endDate: new Date(Date.now() + 30*24*60*60*1000), sales: 47, revenue: 23500, status: 'active' }] },
+                { id: 2, name: 'Ananya Gupta', platform: 'YouTube', handle: '@ananyamakeup', referralCode: 'FL-ANANYA-2', totalSales: 83, totalRevenue: 41500, commission: 15, commissionPaid: 4200, isActive: true, campaigns: [{ name: 'Monsoon Matte', startDate: new Date(Date.now() - 30*24*60*60*1000), endDate: new Date(Date.now() + 15*24*60*60*1000), sales: 83, revenue: 41500, status: 'active' }] },
+                { id: 3, name: 'Riya Patel', platform: 'Instagram', handle: '@riyalooks', referralCode: 'FL-RIYA-3', totalSales: 21, totalRevenue: 10500, commission: 10, commissionPaid: 1050, isActive: true, campaigns: [{ name: 'Festive Glam', startDate: new Date(Date.now() - 60*24*60*60*1000), endDate: new Date(Date.now() - 10*24*60*60*1000), sales: 21, revenue: 10500, status: 'completed' }] }
+            ]);
+            console.log('Demo influencers seeded.');
+        }
+
+        // Seed default settings
+        const settingCount = await Setting.countDocuments();
+        if (settingCount === 0) {
+            await Setting.insertMany([
+                { key: 'gst_rate', value: 18, category: 'tax' },
+                { key: 'free_shipping_threshold', value: 599, category: 'shipping' },
+                { key: 'currency', value: 'INR', category: 'general' },
+                { key: 'banner_text', value: '✨ FREE SHIPPING ABOVE ₹599 | USE CODE BEAUTY20 FOR 20% OFF ✨', category: 'website' },
+                { key: 'low_stock_threshold', value: 10, category: 'inventory' }
+            ]);
+            console.log('Default settings seeded.');
+        }
+    } catch (e) {
+        console.error('Error seeding admin data:', e.message);
     }
 };
 

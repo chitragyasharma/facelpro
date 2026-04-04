@@ -6,16 +6,26 @@ const jwt = require('jsonwebtoken');
 const path = require('path');
 const connectDB = require('./db');
 const { User, Product, Cart, Wishlist, Order } = require('./models');
+const adminRoutes = require('./admin-routes');
+const Razorpay = require('razorpay');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 const SECRET_KEY = process.env.SECRET_KEY || "facelook_super_secret_key";
 
+const razorpay = new Razorpay({
+    key_id: process.env.RAZORPAY_KEY_ID || 'rzp_test_placeholder',
+    key_secret: process.env.RAZORPAY_KEY_SECRET || 'secret_placeholder'
+});
+
 // Connect to MongoDB
 connectDB();
 
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: '10mb' }));
+
+// Admin routes
+app.use('/api/admin', adminRoutes);
 
 // Serve static files from the client directory
 app.use(express.static(path.join(__dirname, '../client')));
@@ -274,14 +284,68 @@ app.post('/api/checkout', authenticateToken, async (req, res) => {
         // Clear cart
         await Cart.deleteMany({ user_id: req.user.id });
         
-        res.json({ success: true, message: "Order placed successfully" });
+        res.json({ success: true, order_id, message: "Order placed successfully" });
     } catch (error) {
         res.status(500).json({ error: 'Error during checkout' });
     }
 });
 
+app.post('/api/payment/create-order', authenticateToken, async (req, res) => {
+    const { amount } = req.body;
+    try {
+        const options = {
+            amount: amount * 100,
+            currency: "INR",
+            receipt: `receipt_${Date.now()}`
+        };
+        const order = await razorpay.orders.create(options);
+        res.json(order);
+    } catch (error) {
+        res.status(500).json({ error: "Could not create Razorpay order" });
+    }
+});
+
+app.post('/api/payment/verify', authenticateToken, async (req, res) => {
+    const { razorpay_order_id, razorpay_payment_id, razorpay_signature, order_id } = req.body;
+    const crypto = require('crypto');
+    const hmac = crypto.createHmac('sha256', process.env.RAZORPAY_KEY_SECRET || 'secret_placeholder');
+    hmac.update(razorpay_order_id + "|" + razorpay_payment_id);
+    const generated_signature = hmac.digest('hex');
+
+    if (generated_signature === razorpay_signature) {
+        const order = await Order.findOne({ id: order_id });
+        if (order) {
+            order.status = 'Paid';
+            order.razorpay_payment_id = razorpay_payment_id;
+            order.razorpay_order_id = razorpay_order_id;
+            await order.save();
+        }
+        await Cart.deleteMany({ user_id: req.user.id });
+        res.json({ success: true });
+    } else {
+        res.status(400).json({ success: false, error: "Invalid signature" });
+    }
+});
+
+app.get('/api/payment/key', (req, res) => {
+    res.json({ key: process.env.RAZORPAY_KEY_ID || 'rzp_test_placeholder' });
+});
+
+app.get('/api/orders', authenticateToken, async (req, res) => {
+    try {
+        const orders = await Order.find({ user_id: req.user.id }).sort({ id: -1 });
+        res.json(orders);
+    } catch (error) {
+        res.status(500).json({ error: 'Error fetching orders' });
+    }
+});
+
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, '../client/index.html.html'));
+});
+
+app.get('/admin', (req, res) => {
+    res.sendFile(path.join(__dirname, '../client/admin.html'));
 });
 
 app.listen(PORT, () => {

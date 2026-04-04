@@ -8,6 +8,7 @@
   <link
     href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,700&family=Jost:wght@300;400;500;600;700&display=swap"
     rel="stylesheet">
+  <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
   <style>
     /* ══════════════════════════════════════
    VARIABLES & RESET
@@ -1798,6 +1799,58 @@
       transform: scale(1.25);
     }
 
+    /* ══════════════════════════════════════
+       ACCOUNT PAGE
+    ══════════════════════════════════════ */
+    .account-header {
+                background: linear-gradient(135deg, var(--rose-d), var(--rose));
+                padding: 40px 24px;
+                color: #fff;
+                text-align: center;
+                border-bottom-left-radius: 30px;
+                border-bottom-right-radius: 30px;
+                margin-bottom: 24px;
+            }
+            .account-name { font-family: 'Playfair Display', serif; font-size: 28px; font-style: italic; margin-bottom: 4px; }
+            .account-email { font-size: 14px; opacity: 0.8; letter-spacing: 0.5px; }
+            
+            .order-card {
+                background: var(--card);
+                border: 1px solid var(--border);
+                border-radius: 18px;
+                padding: 16px;
+                margin: 0 16px 16px;
+                box-shadow: var(--shadow);
+            }
+            .order-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; }
+            .order-id { font-size: 11px; font-weight: 700; color: var(--tm); letter-spacing: 1px; }
+            .order-date { font-size: 10px; color: var(--tl); }
+            .order-status {
+                font-size: 10px; font-weight: 800; padding: 4px 10px; border-radius: 12px; text-transform: uppercase;
+                letter-spacing: 1px;
+            }
+            .status-paid { background: #E8F5E9; color: #2E7D32; }
+            .status-pending { background: #FFF3E0; color: #E65100; }
+            .status-awaiting { background: #E3F2FD; color: #1565C0; }
+
+            .order-items { border-top: 1px dashed var(--border); padding-top: 12px; margin-top: 12px; }
+            .order-item-row { display: flex; justify-content: space-between; font-size: 12px; color: var(--td); margin-bottom: 4px; }
+            .order-total-row { display: flex; justify-content: space-between; font-size: 14px; font-weight: 800; color: var(--rose-d); margin-top: 8px; border-top: 1px solid var(--border); padding-top: 8px; }
+            
+            .logout-btn {
+                margin: 20px 16px 40px;
+                background: #FFF0F2;
+                color: #D32F2F;
+                border: 1px solid #FFCDD2;
+                padding: 14px;
+                border-radius: 12px;
+                font-weight: 700;
+                width: calc(100% - 32px);
+                cursor: pointer;
+                transition: all 0.2s;
+            }
+            .logout-btn:hover { background: #FFEBEE; transform: translateY(-2px); }
+
     /* --- RESPONSIVE & DESKTOP ORIENTED OVERRIDES --- */
     .desktop-nav-links,
     .desktop-nav-icons {
@@ -2174,7 +2227,7 @@
       </div>
       <span onclick="goTo('wishlist')" style="cursor:pointer;" title="Wishlist">♡</span>
       <span onclick="goTo('cart')" style="cursor:pointer;" title="Cart">🛒</span>
-      <span onclick="goTo(state.user?'home':'auth')" style="cursor:pointer;" title="Account">👤</span>
+      <span onclick="goTo(state.user?'account':'auth')" style="cursor:pointer;" title="Account">👤</span>
     </div>
   </nav>
 
@@ -2190,6 +2243,7 @@
     <div class="sidebar-link" onclick="goTo('shop');closeSidebar()">🛍️ Shop All</div>
     <div class="sidebar-link" onclick="goTo('wishlist');closeSidebar()">♡ Wishlist</div>
     <div class="sidebar-link" onclick="goTo('cart');closeSidebar()">🛒 Cart</div>
+    <div class="sidebar-link" onclick="goTo('account');closeSidebar()">👤 My Account</div>
     <div class="sidebar-link" onclick="goTo('about');closeSidebar()">📖 About Us</div>
     <div class="sidebar-link" onclick="goTo('contact');closeSidebar()">📬 Contact</div>
     <div style="margin-top:22px;" id="sidebar-auth-btn"></div>
@@ -2644,14 +2698,21 @@
       <span class="bnav-icon">🛒</span><span class="bnav-label">Cart</span>
       <span class="bnav-badge" id="bn-cart-badge">0</span>
     </button>
-    <button class="bnav-btn" id="bn-auth" onclick="goTo(state.user?'home':'auth')">
+    <button class="bnav-btn" id="bn-auth" onclick="goTo(state.user?'account':'auth')">
       <span class="bnav-icon">👤</span><span class="bnav-label">Account</span>
     </button>
   </div>
 
   <!-- ═══════════════════════════════════
-     JAVASCRIPT
-════════════════════════════════════ -->
+       PAGE: ACCOUNT
+  ════════════════════════════════════ -->
+  <div class="page" id="page-account" style="padding-bottom:100px;">
+    <div id="account-content"></div>
+  </div>
+
+  <!-- ═══════════════════════════════════
+       JAVASCRIPT
+  ════════════════════════════════════ -->
   <script>
     // ─── DATA ───────────────────────────────────
     const state = {
@@ -2692,16 +2753,20 @@
     // ─── NAVIGATION ─────────────────────────────
     function goTo(page) {
       document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-      document.getElementById('page-' + page).classList.add('active');
+      const pageEl = document.getElementById('page-' + page);
+      if (pageEl) pageEl.classList.add('active');
+      
       document.querySelectorAll('.bnav-btn').forEach(b => b.classList.remove('active'));
-      const bnMap = { home: 'bn-home', shop: 'bn-shop', wishlist: 'bn-wishlist', cart: 'bn-cart', auth: 'bn-auth', product: 'bn-shop' };
-      if (bnMap[page]) document.getElementById(bnMap[page]).classList.add('active');
+      const bnMap = { home: 'bn-home', shop: 'bn-shop', wishlist: 'bn-wishlist', cart: 'bn-cart', auth: 'bn-auth', product: 'bn-shop', account: 'bn-auth' };
+      if (bnMap[page]) document.getElementById(bnMap[page])?.classList.add('active');
+      
       state.page = page;
       window.scrollTo(0, 0);
       if (page === 'shop') renderShop();
       if (page === 'cart') renderCart();
       if (page === 'wishlist') renderWishlist();
       if (page === 'checkout') { state.checkoutStep = 1; renderCheckout(); }
+      if (page === 'account') renderAccount();
     }
 
     function shopByFilter(filter) {
@@ -3056,6 +3121,64 @@
       }
     }
 
+    // ─── ACCOUNT & ORDERS ───────────────────────
+    async function renderAccount() {
+      const el = document.getElementById('account-content');
+      if (!state.user) return goTo('auth');
+
+      el.innerHTML = `
+        <div class="account-header">
+          <div class="account-name">${state.user.name}</div>
+          <div class="account-email">${state.user.email}</div>
+        </div>
+        <div class="sec-header"><span class="sec-title">Order History</span></div>
+        <div id="orders-list"><div style="text-align:center;padding:40px;color:var(--tl);">Loading orders...</div></div>
+        <button class="logout-btn" onclick="logout()">Log Out</button>
+      `;
+
+      try {
+        const orders = await api('/api/orders');
+        const listEl = document.getElementById('orders-list');
+        if (orders.length === 0) {
+          listEl.innerHTML = `<div style="text-align:center;padding:40px;color:var(--tl);">No orders yet ✨</div>`;
+          return;
+        }
+
+        listEl.innerHTML = orders.map(o => {
+          const date = new Date(o.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+          const statusClass = o.status === 'Paid' ? 'status-paid' : o.status === 'Pending' ? 'status-pending' : 'status-awaiting';
+          return `
+            <div class="order-card">
+              <div class="order-top">
+                <div>
+                  <div class="order-id">ORDER #${o.id}</div>
+                  <div class="order-date">${date}</div>
+                </div>
+                <div class="order-status ${statusClass}">${o.status}</div>
+              </div>
+              ${o.razorpay_payment_id ? `<div style="font-size:10px;color:var(--tl);margin-bottom:8px;">Payment ID: ${o.razorpay_payment_id}</div>` : ''}
+              <div class="order-items">
+                <div class="order-item-row" style="font-weight:600;"><span>Total Amount</span><span>₹${o.total}</span></div>
+              </div>
+            </div>
+          `;
+        }).join('');
+      } catch (err) {
+        document.getElementById('orders-list').innerHTML = `<div style="text-align:center;padding:40px;color:red;">Error loading orders</div>`;
+      }
+    }
+
+    function logout() {
+      state.token = null;
+      state.user = null;
+      state.cart = [];
+      state.wishlist = [];
+      localStorage.removeItem('facelook_token');
+      updateBadges();
+      goTo('home');
+      showToast("Logged out successfully");
+    }
+
     function selectPay(val) {
       state.checkoutData.pay = val;
       document.querySelectorAll('.pay-option').forEach(el => {
@@ -3069,13 +3192,71 @@
       const ship = sub >= 599 ? 0 : 49;
       const total = sub + ship;
       try {
-        await api('/api/checkout', 'POST', { total, details: state.checkoutData });
-        state.cart = [];
-        updateBadges();
-        state.checkoutStep = 3;
-        renderCheckout();
-        window.scrollTo(0, 0);
+        const res = await api('/api/checkout', 'POST', { total, details: state.checkoutData });
+        const order_id = res.order_id;
+
+        if (state.checkoutData.pay === 'cod') {
+          state.cart = [];
+          updateBadges();
+          state.checkoutStep = 3;
+          renderCheckout();
+          window.scrollTo(0, 0);
+        } else {
+          processRazorpayPayment(total, order_id);
+        }
       } catch (err) { showToast(err.message); }
+    }
+
+    async function processRazorpayPayment(amount, order_id) {
+      try {
+        const { key } = await api('/api/payment/key');
+        const rzpOrder = await api('/api/payment/create-order', 'POST', { amount });
+        
+        const options = {
+          key: key,
+          amount: rzpOrder.amount,
+          currency: rzpOrder.currency,
+          name: "FACÉLOOK",
+          description: "Queen of Mattes Collection",
+          order_id: rzpOrder.id,
+          handler: async function (response) {
+            try {
+              await api('/api/payment/verify', 'POST', {
+                razorpay_order_id: response.razorpay_order_id,
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_signature: response.razorpay_signature,
+                order_id: order_id
+              });
+              state.cart = [];
+              updateBadges();
+              state.checkoutStep = 3;
+              renderCheckout();
+              window.scrollTo(0, 0);
+              showToast("Payment Successful!");
+            } catch (err) {
+              showToast("Verification failed: " + err.message);
+            }
+          },
+          prefill: {
+            name: state.checkoutData.name,
+            email: state.checkoutData.email,
+            contact: state.checkoutData.phone
+          },
+          theme: { color: "#B76E79" }
+        };
+
+        // Note: In real production, we would fetch the Razorpay Key ID from the backend
+        // For now, if the user has RAZORPAY_KEY_ID in .env, they should manually update this or we can add an endpoint to get it.
+        // Let's add an endpoint /api/payment/key to get the public key.
+
+        const rzp = new Razorpay(options);
+        rzp.on('payment.failed', function (response) {
+          showToast("Payment Failed: " + response.error.description);
+        });
+        rzp.open();
+      } catch (err) {
+        showToast("Error starting payment: " + err.message);
+      }
     }
 
     function nextCheckout(step) {
@@ -3086,7 +3267,10 @@
         state.checkoutData.address = document.getElementById('co-addr')?.value || '';
         state.checkoutData.city = document.getElementById('co-city')?.value || '';
         state.checkoutData.pincode = document.getElementById('co-pin')?.value || '';
-        if (!state.checkoutData.name || !state.checkoutData.email) { showToast('Please fill required fields'); return; }
+        if (!state.checkoutData.name || !state.checkoutData.email || !state.checkoutData.phone) { 
+          showToast('Please fill all required fields'); 
+          return; 
+        }
       }
       if (step === 2) {
         if (!state.checkoutData.pay) state.checkoutData.pay = 'card';
