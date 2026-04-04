@@ -296,7 +296,10 @@ app.post('/api/checkout/upi', authenticateToken, async (req, res) => {
         
         const order = await Order.findOne({ id: order_id });
         if (order) {
-            order.status = 'Pending Verification';
+            order.status = 'pending';
+            order.paymentMethod = 'upi';
+            order.paymentStatus = 'pending';
+            if (!order.details) order.details = {};
             order.details.utr_number = utr;
             order.markModified('details');
             await order.save();

@@ -2262,7 +2262,7 @@
         <img src="" id="upi-dynamic-qr" style="width:200px;height:200px;border-radius:8px;" alt="Business QR Code">
       </div>
       
-      <p style="font-size:13px;color:var(--tm);margin-bottom:24px;">Or use UPI ID: <strong style="color:var(--td);">7683060619@superyes</strong></p>
+      <p style="font-size:13px;color:var(--tm);margin-bottom:24px;">Or use UPI ID: <strong style="color:var(--td);">9910215683@ptyes</strong></p>
       
       <div style="text-align:left;margin-bottom:24px;">
         <label style="font-size:12px;color:var(--tm);font-weight:600;text-transform:uppercase;letter-spacing:1px;">Enter UTR / Transaction ID (12 digits)</label>
@@ -3449,7 +3449,7 @@
     function showUpiQrModal(amount, orderId) {
       currentUpiOrderId = orderId;
       document.getElementById('qr-amount').innerText = amount;
-      document.getElementById('upi-dynamic-qr').src = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&color=3A2020&data=upi://pay?pa=7683060619@superyes%26pn=FACELOOK%26am=${amount}`;
+      document.getElementById('upi-dynamic-qr').src = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&color=3A2020&data=upi://pay?pa=9910215683@ptyes%26pn=FACELOOK%26am=${amount}`;
       document.getElementById('upi-qr-overlay').style.display = 'block';
       const input = document.getElementById('upi-utr-input');
       if (input) input.value = '';
